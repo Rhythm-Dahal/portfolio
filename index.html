@@ -127,6 +127,28 @@
       margin: 0 auto;
     }
 
+    /* Mobile menu toggle (hidden on desktop) */
+    .menu-toggle {
+      display: none;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle:hover {
+      transform: scale(1.05);
+      background: rgba(144, 238, 144, 0.15);
+      border-color: #90ee90;
+    }
+
     .logo {
       font-size: 2rem;
       font-weight: 800;
@@ -497,13 +519,32 @@
         font-size: 2.5rem;
       }
       
+      .menu-toggle { display: inline-flex; }
+
       .nav-links {
         display: none;
+        position: absolute;
+        top: 70px;
+        right: 1rem;
+        left: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: var(--glass);
+        backdrop-filter: blur(18px);
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+      }
+
+      .nav-links.open {
+        display: flex;
       }
       
       .grid-2, .grid-3 {
         grid-template-columns: 1fr;
       }
+
+      .btn { width: 100%; text-align: center; }
     }
 
     /* Class Rank in Hero Section */
@@ -710,6 +751,17 @@
     ::-webkit-scrollbar-thumb:hover {
       background: var(--secondary);
     }
+
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+      .animated-bg { animation: none !important; }
+      .particle { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -730,6 +782,7 @@
         <li><a href="current-projects.html"><span>Current Projects</span></a></li>
         <li><a href="#contact"><span>Contact</span></a></li>
       </ul>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-navigation">☰</button>
     </nav>
   </header>
 
@@ -756,13 +809,13 @@
     </section>
 
     <!-- Experience Tabs -->
-    <section class="card slide-right">
+    <section id="experience" class="card slide-right">
       <h2>Academic & Leadership Experience</h2>
       
       <div class="tabs">
         <button class="tab-btn active" data-tab="courses">Courses & Academics</button>
         <button class="tab-btn" data-tab="leadership">Leadership & Clubs</button>
-        <button class="tab-btn" data-tab="experience">Work Experience</button>
+        <button class="tab-btn" data-tab="work-experience">Work Experience</button>
       </div>
 
       <div class="tab-content active" id="courses">
@@ -811,7 +864,7 @@
         </div>
       </div>
 
-      <div class="tab-content" id="experience">
+      <div class="tab-content" id="work-experience">
         <div class="card">
           <h3>Kumon Summer Job</h3>
           <p>I worked as a tutor from June to July, helping students with their academic studies and developing my communication and teaching skills.</p>
@@ -906,7 +959,12 @@
       setTimeout(() => particle.remove(), 8000);
     }
     
-    setInterval(createParticle, 1500);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (!prefersReducedMotion) {
+      const particleInterval = isMobile ? 3000 : 1500;
+      setInterval(createParticle, particleInterval);
+    }
 
     // Header scroll effect
     window.addEventListener('scroll', () => {
@@ -936,6 +994,27 @@
         document.getElementById(targetTab).classList.add('active');
       });
     });
+
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener('click', () => {
+        const isOpen = navLinks.classList.toggle('open');
+        menuToggle.setAttribute('aria-expanded', String(isOpen));
+        menuToggle.textContent = isOpen ? '✕' : '☰';
+      });
+      // Close menu after clicking a link (mobile UX)
+      navLinks.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (navLinks.classList.contains('open')) {
+            navLinks.classList.remove('open');
+            menuToggle.setAttribute('aria-expanded', 'false');
+            menuToggle.textContent = '☰';
+          }
+        });
+      });
+    }
 
     // Background color toggle
     const bgToggle = document.getElementById('bgToggle');
